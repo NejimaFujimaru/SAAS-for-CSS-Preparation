@@ -1,61 +1,60 @@
 ```
-# Dependencies
-node_modules/
-
-# Environment variables
+# Environment
 .env
 .env.local
-.env.*
+*.env.*
 
-# Build outputs
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+
+# Editors
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+.venv/
+venv/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
 dist/
 build/
 target/
+.gradle/
 
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp
-*.temp
-
-# OS generated files
+# System files
 .DS_Store
 Thumbs.db
 
-# Editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Coverage reports
+# Coverage
 coverage/
 htmlcov/
 .coverage
 
-# MyPy cache
-.mypy_cache/
-# PyTest cache
-.pytest_cache/
-
-# Distribution / packaging
-.Python
-*.egg-info/
-.eggs/
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# Local configuration
-.envrc
-.env.local
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
 ```
