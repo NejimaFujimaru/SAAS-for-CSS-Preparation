@@ -27,21 +27,44 @@
                 <div class="sidebar-section">
                     <h2>New Notebook</h2>
                     
+                    <!-- File Upload Option -->
+                    <div class="input-group">
+                        <label for="fileUpload">Upload Knowledge Source:</label>
+                        <div class="file-upload-container">
+                            <input type="file" id="fileUpload" accept=".txt,.pdf,.docx,.doc,.csv,.xlsx,.xls" />
+                            <label for="fileUpload" class="file-upload-label">
+                                <span class="upload-icon">📁</span>
+                                <span class="upload-text">Choose File</span>
+                                <span class="upload-hint">PDF, DOCX, TXT, CSV, Excel</span>
+                            </label>
+                            <div id="fileNameDisplay" class="file-name-display"></div>
+                        </div>
+                    </div>
+
+                    <div class="divider"><span>OR</span></div>
+                    
                     <!-- URL Input Option -->
                     <div class="input-group">
-                        <label for="articleUrl">Or fetch from URL:</label>
+                        <label for="articleUrl">Fetch from URL:</label>
                         <div class="url-input-group">
                             <input type="url" id="articleUrl" placeholder="https://e.thenews.pk/detail?id=...">
                             <button id="fetchUrlBtn" class="btn-secondary" title="Fetch from URL">Fetch</button>
                         </div>
-                        <small class="input-hint">Supports DAWN, The News, and major Pakistani news sites</small>
+                        <small class="input-hint">Supports DAWN, The News, and major news sites</small>
                     </div>
 
                     <div class="divider"><span>OR</span></div>
 
                     <!-- Text Input Option -->
-                    <textarea id="articleInput" placeholder="Paste your article text here..." rows="6"></textarea>
-                    <button id="processBtn" class="btn-primary btn-full">Generate Notebook</button>
+                    <div class="input-group">
+                        <label for="articleInput">Paste Article Text:</label>
+                        <textarea id="articleInput" placeholder="Paste your article text here..." rows="6"></textarea>
+                    </div>
+                    
+                    <button id="processBtn" class="btn-primary btn-full">
+                        <span class="btn-text">Generate Notebook with AI</span>
+                        <span class="btn-loading hidden">⏳ Processing...</span>
+                    </button>
                 </div>
 
                 <div class="sidebar-section">

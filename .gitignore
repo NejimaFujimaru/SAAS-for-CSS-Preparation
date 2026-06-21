@@ -2,28 +2,60 @@
 # Dependencies
 node_modules/
 
-# Package lock file
-package-lock.json
-
-# Logs and temp files
-*.log
-*.tmp
-*.swp
-
-# Environment
+# Environment variables
 .env
 .env.local
 .env.*
 
-# Editors
-.vscode/
-.idea/
+# Build outputs
+dist/
+build/
+target/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
 
 # OS generated files
 .DS_Store
 Thumbs.db
 
-# Build outputs (if any JS build process exists)
-dist/
-build/
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# MyPy cache
+.mypy_cache/
+# PyTest cache
+.pytest_cache/
+
+# Distribution / packaging
+.Python
+*.egg-info/
+.eggs/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Local configuration
+.envrc
+.env.local
 ```
