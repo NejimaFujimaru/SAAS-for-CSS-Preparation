@@ -1,123 +1,145 @@
 /**
  * Fetcher Module
- * Handles URL fetching via CORS proxy and content extraction
+ * Handles URL fetching via serverless function and file uploads
  */
 
 const Fetcher = {
-    // Serverless function endpoint for fetching articles
-    serverlessEndpoint: '/api/fetch-article',
+    // Serverless function endpoints
+    fetchEndpoint: '/api/fetch-article',
+    generateEndpoint: '/api/generate-content',
+    fileEndpoint: '/api/process-file',
     
-    // Public CORS proxies (fallback list if one fails) - kept as backup
-    proxies: [
-        'https://api.allorigins.win/raw?url=',
-        'https://thingproxy.freeboard.io/fetch/',
-        'https://corsproxy.sciencedirect.com/api/allorigins/win/raw?url='
-    ],
-
     /**
-     * Fetch content from a URL
+     * Fetch content from a URL using serverless function
      * @param {string} url - The target URL
-     * @returns {Promise<string>} - Cleaned text content
+     * @returns {Promise<object>} - Object with title, content, and metadata
      */
     async fetchArticle(url) {
         if (!url || !url.startsWith('http')) {
             throw new Error('Invalid URL format');
         }
 
-        let lastError;
-        
-        // Try serverless endpoint first (if available)
         try {
-            const response = await fetch(`${this.serverlessEndpoint}?url=${encodeURIComponent(url)}`);
+            const response = await fetch(this.fetchEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url }),
+            });
             
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success) {
-                    return data.content;
-                }
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                return {
+                    success: true,
+                    title: data.title,
+                    content: data.content,
+                    source: url,
+                    fetchedAt: data.fetchedAt
+                };
+            } else if (data.success === false && data.partialContent) {
+                // Partial success - site blocked but got some content
+                return {
+                    success: false,
+                    error: data.error,
+                    suggestion: data.suggestion,
+                    partialContent: data.partialContent,
+                    title: data.title
+                };
+            } else {
+                throw new Error(data.error || data.message || 'Failed to fetch article');
             }
         } catch (error) {
-            console.warn('Serverless endpoint failed:', error.message);
-            lastError = error;
+            console.error('Fetch article error:', error);
+            throw error;
         }
-        
-        // Fallback to public CORS proxies
-        for (const proxy of this.proxies) {
-            try {
-                const response = await fetch(proxy + encodeURIComponent(url));
-                
-                if (!response.ok) {
-                    throw new Error(`Proxy failed with status ${response.status}`);
-                }
-
-                const html = await response.text();
-                return this.extractContent(html, url);
-            } catch (error) {
-                console.warn(`Proxy ${proxy} failed:`, error.message);
-                lastError = error;
-                continue;
-            }
-        }
-
-        throw new Error(`Failed to fetch article. All proxies failed. Last error: ${lastError?.message}`);
     },
 
     /**
-     * Extract main content from raw HTML
-     * Uses heuristics to find article body and remove noise
-     * @param {string} html - Raw HTML string
-     * @param {string} baseUrl - Original URL for resolving relative links
-     * @returns {string} - Cleaned text
+     * Upload and process a file (PDF, TXT, DOCX, CSV, Excel)
+     * @param {File} file - The file to process
+     * @returns {Promise<object>} - Object with extracted text content
      */
-    extractContent(html, baseUrl) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-
-        // Remove script, style, nav, footer, header, ads
-        const tagsToRemove = ['script', 'style', 'nav', 'footer', 'header', 'iframe', 'noscript', 'form'];
-        tagsToRemove.forEach(tag => {
-            const elements = doc.querySelectorAll(tag);
-            elements.forEach(el => el.remove());
-        });
-
-        // Remove common ad classes/IDs
-        const adPatterns = ['ad-', 'advertisement', 'sponsor', 'social-share', 'related-news', 'comments', 'sidebar'];
-        adPatterns.forEach(pattern => {
-            const elements = doc.querySelectorAll(`[class*="${pattern}"], [id*="${pattern}"]`);
-            elements.forEach(el => el.remove());
-        });
-
-        // Heuristic: Find the main content container
-        // Look for <article>, <main>, or divs with high text density
-        let contentContainer = 
-            doc.querySelector('article') || 
-            doc.querySelector('main') || 
-            doc.querySelector('.article-body') ||
-            doc.querySelector('.story-content') ||
-            doc.querySelector('.content') ||
-            doc.querySelector('body');
-
-        if (!contentContainer) {
-            throw new Error('Could not identify article content structure.');
+    async processFile(file) {
+        if (!file) {
+            throw new Error('No file provided');
         }
 
-        // Extract text from paragraphs and headings
-        const paragraphs = contentContainer.querySelectorAll('p, h1, h2, h3, h4, h5, h6');
-        let textContent = [];
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
 
-        paragraphs.forEach(el => {
-            const text = el.textContent.trim();
-            // Filter out very short lines (likely buttons or labels)
-            if (text.length > 20) {
-                textContent.push(text);
+            const response = await fetch(this.fileEndpoint, {
+                method: 'POST',
+                body: formData,
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                return {
+                    success: true,
+                    title: data.title,
+                    content: data.content,
+                    fileName: data.fileName,
+                    fileType: data.fileType,
+                    processedAt: data.processedAt
+                };
+            } else if (data.success === false) {
+                return {
+                    success: false,
+                    error: data.error,
+                    suggestion: data.suggestion || 'Please try a different file format or paste text manually.'
+                };
+            } else {
+                throw new Error(data.error || 'Failed to process file');
             }
-        });
+        } catch (error) {
+            console.error('Process file error:', error);
+            throw error;
+        }
+    },
 
-        if (textContent.length === 0) {
-            throw new Error('No readable article content found. The site might be blocking scrapers.');
+    /**
+     * Generate content using AI (OpenRouter free model)
+     * @param {string} content - The source content
+     * @param {string} taskType - Type of generation (full_notebook, mcqs, vocabulary, essay, facts_extraction, classification)
+     * @param {string} extraContext - Optional additional context
+     * @returns {Promise<object>} - Generated content
+     */
+    async generateWithAI(content, taskType, extraContext = '') {
+        if (!content || !taskType) {
+            throw new Error('Content and task type are required');
         }
 
-        return textContent.join('\n\n');
+        try {
+            const response = await fetch(this.generateEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content,
+                    taskType,
+                    extraContext
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                return {
+                    success: true,
+                    data: data.data
+                };
+            } else {
+                throw new Error(data.error || data.details || 'AI generation failed');
+            }
+        } catch (error) {
+            console.error('AI generation error:', error);
+            throw error;
+        }
     },
 
     /**
