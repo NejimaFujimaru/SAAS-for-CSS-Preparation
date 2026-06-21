@@ -30,6 +30,10 @@ const App = {
         const processBtn = document.getElementById('processBtn');
         processBtn.addEventListener('click', () => this.processArticle());
 
+        // Fetch URL button
+        const fetchUrlBtn = document.getElementById('fetchUrlBtn');
+        fetchUrlBtn.addEventListener('click', () => this.fetchFromURL());
+
         // Delete notebook button
         const deleteBtn = document.getElementById('deleteNotebookBtn');
         deleteBtn.addEventListener('click', () => this.deleteCurrentNotebook());
@@ -39,6 +43,14 @@ const App = {
         articleInput.addEventListener('keydown', (e) => {
             if (e.ctrlKey && e.key === 'Enter') {
                 this.processArticle();
+            }
+        });
+
+        // Allow Enter key in URL input to trigger fetch
+        const articleUrlInput = document.getElementById('articleUrl');
+        articleUrlInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                this.fetchFromURL();
             }
         });
     },
@@ -85,6 +97,64 @@ const App = {
             console.error('Error processing article:', error);
             UI.hideLoading();
             UI.showToast('Error processing article. Please try again.');
+        }
+    },
+
+    /**
+     * Fetch article from URL and process it
+     */
+    async fetchFromURL() {
+        const urlInput = document.getElementById('articleUrl');
+        const url = urlInput.value.trim();
+
+        if (!url) {
+            UI.showToast('Please enter a valid URL');
+            return;
+        }
+
+        if (!Fetcher.isValidUrl(url)) {
+            UI.showToast('Invalid URL format. Please include http:// or https://');
+            return;
+        }
+
+        try {
+            // Show loading state
+            UI.showLoading();
+            UI.updateLoadingMessage('Fetching article from URL...');
+
+            // Fetch the article content
+            const articleText = await Fetcher.fetchArticle(url);
+
+            // Update loading message
+            UI.updateLoadingMessage('Generating notebook...');
+
+            // Small delay for better UX
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Generate notebook
+            const notebook = Generator.generateNotebook(articleText);
+
+            // Save to storage
+            Storage.saveNotebook(notebook);
+
+            // Display notebook
+            UI.displayNotebook(notebook);
+
+            // Refresh notebooks list
+            this.loadNotebooksList();
+
+            // Clear inputs
+            urlInput.value = '';
+            document.getElementById('articleInput').value = '';
+
+            // Hide loading
+            UI.hideLoading();
+
+            UI.showToast('Article fetched and notebook generated successfully!');
+        } catch (error) {
+            console.error('Error fetching article:', error);
+            UI.hideLoading();
+            UI.showToast(`Failed to fetch article: ${error.message}. Please try pasting the text directly.`);
         }
     },
 

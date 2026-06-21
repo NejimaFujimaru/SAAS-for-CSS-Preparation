@@ -123,6 +123,22 @@ const UI = {
      */
     hideLoading() {
         document.getElementById('loadingOverlay').classList.add('hidden');
+        // Reset loading message for next time
+        const loadingMessage = document.querySelector('#loadingOverlay p');
+        if (loadingMessage) {
+            loadingMessage.textContent = 'Processing article...';
+        }
+    },
+
+    /**
+     * Update loading message
+     * @param {string} message - New loading message
+     */
+    updateLoadingMessage(message) {
+        const loadingMessage = document.querySelector('#loadingOverlay p');
+        if (loadingMessage) {
+            loadingMessage.textContent = message;
+        }
     },
 
     /**

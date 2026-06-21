@@ -26,7 +26,21 @@
             <aside class="sidebar">
                 <div class="sidebar-section">
                     <h2>New Notebook</h2>
-                    <textarea id="articleInput" placeholder="Paste your article text here..." rows="8"></textarea>
+                    
+                    <!-- URL Input Option -->
+                    <div class="input-group">
+                        <label for="articleUrl">Or fetch from URL:</label>
+                        <div class="url-input-group">
+                            <input type="url" id="articleUrl" placeholder="https://e.thenews.pk/detail?id=...">
+                            <button id="fetchUrlBtn" class="btn-secondary" title="Fetch from URL">Fetch</button>
+                        </div>
+                        <small class="input-hint">Supports DAWN, The News, and major Pakistani news sites</small>
+                    </div>
+
+                    <div class="divider"><span>OR</span></div>
+
+                    <!-- Text Input Option -->
+                    <textarea id="articleInput" placeholder="Paste your article text here..." rows="6"></textarea>
                     <button id="processBtn" class="btn-primary btn-full">Generate Notebook</button>
                 </div>
 
@@ -229,6 +243,7 @@
 
     <script src="js/classifier.js"></script>
     <script src="js/vocabulary.js"></script>
+    <script src="js/fetcher.js"></script>
     <script src="js/generator.js"></script>
     <script src="js/storage.js"></script>
     <script src="js/export.js"></script>

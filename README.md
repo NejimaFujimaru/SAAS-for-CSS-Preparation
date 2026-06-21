@@ -24,12 +24,24 @@ No installation, no backend, no authentication required!
 
 ## Usage
 
-### Generate a Notebook
+### Generate a Notebook from Text
 
 1. Copy text from any news article (DAWN, The News, etc.)
 2. Paste it into the input box in the sidebar
 3. Click "Generate Notebook" or press Ctrl+Enter
 4. View your structured study material
+
+### Generate a Notebook from URL
+
+1. Copy the URL of any news article
+2. Paste it into the URL input field
+3. Click "Fetch" or press Enter
+4. The article will be automatically fetched and processed
+5. View your structured study material
+
+**Supported Sites**: DAWN, The News, Express Tribune, and other major Pakistani news sites.
+
+> **Note**: Some websites may block automated fetching. If URL fetch fails, simply copy-paste the article text instead.
 
 ### Saved Notebooks
 
