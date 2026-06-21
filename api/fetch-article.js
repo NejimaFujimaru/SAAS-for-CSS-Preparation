@@ -11,17 +11,17 @@ export default async function handler(request) {
       status: 200,
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
       },
     });
   }
 
-  // Only allow GET requests
-  if (request.method !== 'GET') {
+  // Only allow POST requests
+  if (request.method !== 'POST') {
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
-      { 
+      {
         status: 405,
         headers: {
           'Content-Type': 'application/json',
@@ -31,7 +31,13 @@ export default async function handler(request) {
     );
   }
 
-  const url = request.nextUrl.searchParams.get('url');
+  let url;
+  try {
+    const body = await request.json();
+    url = body.url;
+  } catch (e) {
+    url = request.nextUrl.searchParams.get('url');
+  }
 
   if (!url) {
     return new Response(
@@ -66,12 +72,16 @@ export default async function handler(request) {
   }
 
   try {
-    // Fetch the article content
+    // Fetch the article content with better headers
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'no-cache',
       },
     });
 
@@ -97,7 +107,11 @@ export default async function handler(request) {
       '.entry-content',
       '[itemprop="articleBody"]',
       '.story-content',
-      '.news-content'
+      '.news-content',
+      '.article-body-content',
+      '.detail-content',
+      '#article-body',
+      '.content-area'
     ];
 
     for (const selector of mainSelectors) {
@@ -147,13 +161,18 @@ export default async function handler(request) {
 
   } catch (error) {
     console.error('Error fetching article:', error);
+    
+    // Return partial error with suggestion to use AI fallback
     return new Response(
       JSON.stringify({ 
-        error: 'Failed to fetch article',
-        message: error.message 
+        success: false,
+        error: 'Failed to fetch article directly',
+        message: error.message,
+        suggestion: 'The website may be blocking automated access. Please try copying and pasting the article text manually, or the system will attempt AI-based extraction.',
+        canUseAIFallback: true
       }),
       { 
-        status: 500,
+        status: 200,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',

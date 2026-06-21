@@ -299,16 +299,28 @@ const App = {
             UI.showLoading();
             UI.updateLoadingMessage('🌐 Fetching article from URL...');
 
-            // Fetch the article content
+            // Fetch the article content using serverless function
             const result = await Fetcher.fetchArticle(url);
 
-            if (!result.success && result.partialContent) {
-                // Partial success - use what we got
-                UI.updateLoadingMessage('⚠️ Partial content fetched. Generating notebook...');
-                const articleText = result.partialContent;
+            if (result.success && result.content) {
+                // Success - generate notebook from fetched content
+                UI.updateLoadingMessage('🤖 AI is generating notebook from fetched content...');
+                await this.generateNotebookFromText(result.content, result.title);
+                return;
+            }
+
+            // Failed to fetch directly - try AI-based extraction as fallback
+            if (result.canUseAIFallback || !result.success) {
+                UI.updateLoadingMessage('🤖 Direct fetch failed. Using AI to extract content...');
                 
-                // Generate notebook with partial content
-                await this.generateNotebookFromText(articleText, result.title || 'Fetched Article');
+                // Create a minimal prompt for AI to help extract/generate from URL description
+                const urlContext = `The user wants to analyze this news article: ${url}\n\nTitle: ${result.title || 'Unknown'}\n\nNote: The system could not directly access the article content. Please ask the user to paste the article text manually.`;
+                
+                UI.hideLoading();
+                UI.showToast(result.suggestion || 'Could not fetch article. Please paste the text manually.');
+                
+                // Pre-fill textarea with suggestion
+                document.getElementById('articleInput').value = urlContext;
                 return;
             }
 
@@ -316,15 +328,17 @@ const App = {
                 throw new Error('Could not extract sufficient content from URL');
             }
 
-            UI.updateLoadingMessage('🤖 AI is generating notebook from fetched content...');
-            
-            // Generate notebook from fetched content
-            await this.generateNotebookFromText(result.content, result.title);
-
         } catch (error) {
             console.error('Error fetching article:', error);
             UI.hideLoading();
-            UI.showToast(`Failed to fetch: ${error.message}. Try pasting text manually.`);
+            
+            // Provide helpful error message with alternatives
+            const errorMsg = `Failed to fetch: ${error.message}. \n\nAlternatives:\n1. Copy-paste the article text directly\n2. Upload a PDF/TXT file with the content\n3. Try a different news source`;
+            
+            UI.showToast(errorMsg);
+            
+            // Suggest manual input
+            document.getElementById('articleInput').placeholder = `Paste article text from ${url} here...`;
         }
     },
 
