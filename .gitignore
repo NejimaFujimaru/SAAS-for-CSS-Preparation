@@ -1,1 +1,29 @@
-Nothing needs to be added to .gitignore since the changes only include source files (.js, .css, .html, .md) and no build artifacts, dependencies, or temporary files.
+```
+# Dependencies
+node_modules/
+
+# Package lock file
+package-lock.json
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Build outputs (if any JS build process exists)
+dist/
+build/
+```

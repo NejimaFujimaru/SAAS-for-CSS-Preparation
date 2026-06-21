@@ -1,0 +1,21 @@
+{
+  "name": "css-current-affairs-notebook",
+  "version": "1.0.0",
+  "description": "CSS Current Affairs Notebook - SaaS MVP",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "css",
+    "current-affairs",
+    "education",
+    "pakistani-exams"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "node-html-parser": "^6.1.13"
+  },
+  "devDependencies": {}
+}

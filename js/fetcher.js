@@ -4,8 +4,10 @@
  */
 
 const Fetcher = {
-    // Public CORS proxies (fallback list if one fails)
-    // Ordered by reliability and speed
+    // Serverless function endpoint for fetching articles
+    serverlessEndpoint: '/api/fetch-article',
+    
+    // Public CORS proxies (fallback list if one fails) - kept as backup
     proxies: [
         'https://api.allorigins.win/raw?url=',
         'https://thingproxy.freeboard.io/fetch/',
@@ -24,7 +26,22 @@ const Fetcher = {
 
         let lastError;
         
-        // Try proxies sequentially
+        // Try serverless endpoint first (if available)
+        try {
+            const response = await fetch(`${this.serverlessEndpoint}?url=${encodeURIComponent(url)}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    return data.content;
+                }
+            }
+        } catch (error) {
+            console.warn('Serverless endpoint failed:', error.message);
+            lastError = error;
+        }
+        
+        // Fallback to public CORS proxies
         for (const proxy of this.proxies) {
             try {
                 const response = await fetch(proxy + encodeURIComponent(url));
